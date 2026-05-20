@@ -10,7 +10,7 @@ Choose an option below 👇`;
 
 const KEYBOARD = {
   inline_keyboard: [
-    [{ text: '🏪 Showroom', web_app: { url: 'https://premiumhoodies.io/masterterpz-mini-app' } }],
+    [{ text: '🏪 Showroom', web_app: { url: 'https://fluffy-sunshine-c44629.netlify.app/miniapp' } }],
     [{ text: '📋 Menu', url: 'https://rentry.co/fqzxdvp4' }],
     [
       { text: '📸 Instagram Main', url: 'https://www.instagram.com/master.terpzz1' },
@@ -125,7 +125,7 @@ async function start() {
     ]});
     await api('setChatMenuButton', { menu_button: {
       type: 'web_app', text: '🏪 Showroom',
-      web_app: { url: 'https://premiumhoodies.io/masterterpz-mini-app' }
+      web_app: { url: 'https://fluffy-sunshine-c44629.netlify.app/miniapp' }
     }});
     console.log('Ready — polling...');
     poll();
