@@ -11,11 +11,6 @@ Choose an option below 👇`;
 const KEYBOARD = {
   inline_keyboard: [
     [{ text: '🏪 Showroom', web_app: { url: 'https://fluffy-sunshine-c44629.netlify.app/miniapp' } }],
-    [{ text: '📋 Menu', url: 'https://rentry.co/fqzxdvp4' }],
-    [
-      { text: '📸 Instagram Main', url: 'https://www.instagram.com/master.terpzz1' },
-      { text: '🎨 Showroom IG', url: 'https://www.instagram.com/master.ww1' }
-    ],
     [
       { text: '💬 Telegram', url: 'https://t.me/masterthe1' },
       { text: '🛡️ Threema', url: 'https://threema.id/VVNHP7UA' }
@@ -85,7 +80,7 @@ async function sendWithPhoto(chatId, caption) {
   }, imgBuffer, 'masterterpz.png');
   if (res.ok && res.result?.photo) {
     cachedFileId = res.result.photo[res.result.photo.length - 1].file_id;
-    console.log('Image uploaded and cached');
+    console.log('Image cached');
   }
   return res;
 }
