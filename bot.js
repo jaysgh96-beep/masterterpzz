@@ -81,17 +81,59 @@ async function broadcastMsg(text, adminChatId) {
   }
   await api('sendMessage', { chat_id: adminChatId, text: `📡 Broadcasting to ${subs.length} subscribers...` });
   let sent = 0, failed = 0;
+  const sentMessages = []; // { chatId, messageId }
   for (const chatId of subs) {
     try {
-      await api('sendMessage', { chat_id: chatId, text, parse_mode: 'Markdown' });
+      const res = await api('sendMessage', { chat_id: chatId, text, parse_mode: 'Markdown' });
+      if (res.ok && res.result?.message_id) {
+        sentMessages.push({ chatId, messageId: res.result.message_id });
+      }
       sent++;
     } catch(e) { failed++; }
-    await new Promise(r => setTimeout(r, 60)); // ~16 msg/sec, well under rate limit
+    await new Promise(r => setTimeout(r, 60));
   }
+  // Save sent message IDs to JSONBin so we can delete later
+  try {
+    const data = await jsonbinGet();
+    const rec = Array.isArray(data.record) ? { products: data.record } : (data.record || {});
+    rec.lastBroadcast = sentMessages;
+    await jsonbinPut(rec);
+  } catch(e) { console.error('Failed to save broadcast IDs:', e.message); }
   await api('sendMessage', {
     chat_id: adminChatId,
-    text: `✅ Broadcast done!\n📤 Sent: ${sent}\n❌ Failed: ${failed}`
+    text: `✅ Broadcast done!\n📤 Sent: ${sent}\n❌ Failed: ${failed}\n\nUse /deletebroadcast to remove it from everyone's chat.`
   });
+}
+
+async function deleteBroadcast(adminChatId) {
+  try {
+    const data = await jsonbinGet();
+    const rec = Array.isArray(data.record) ? { products: data.record } : (data.record || {});
+    const msgs = rec.lastBroadcast || [];
+    if (!msgs.length) {
+      await api('sendMessage', { chat_id: adminChatId, text: '⚠️ No broadcast to delete.' });
+      return;
+    }
+    await api('sendMessage', { chat_id: adminChatId, text: `🗑 Deleting broadcast from ${msgs.length} chats...` });
+    let deleted = 0, failed = 0;
+    for (const { chatId, messageId } of msgs) {
+      try {
+        await api('deleteMessage', { chat_id: chatId, message_id: messageId });
+        deleted++;
+      } catch(e) { failed++; }
+      await new Promise(r => setTimeout(r, 60));
+    }
+    // Clear lastBroadcast
+    rec.lastBroadcast = [];
+    await jsonbinPut(rec);
+    await api('sendMessage', {
+      chat_id: adminChatId,
+      text: `✅ Deleted from ${deleted} chats${failed > 0 ? `\n❌ Failed: ${failed} (users may have left)` : ''}`
+    });
+  } catch(e) {
+    console.error('deleteBroadcast error:', e.message);
+    await api('sendMessage', { chat_id: adminChatId, text: '❌ Error deleting broadcast.' });
+  }
 }
 
 // ── TELEGRAM ──
@@ -176,6 +218,8 @@ async function poll() {
           } else {
             await broadcastMsg(text, chatId);
           }
+        } else if (msg.text.startsWith('/deletebroadcast') && fromId === ADMIN_ID) {
+          await deleteBroadcast(chatId);
         } else if (msg.text.startsWith('/subscribers') && fromId === ADMIN_ID) {
           const subs = await getSubscribers();
           await api('sendMessage', { chat_id: chatId, text: `📊 Total subscribers: *${subs.length}*`, parse_mode: 'Markdown' });
@@ -200,6 +244,7 @@ async function start() {
       { command: 'start', description: '🧪 Open MasterTerpz menu' },
       { command: 'menu', description: '📋 Show all options' },
       { command: 'broadcast', description: '📡 Broadcast to all subscribers (admin)' },
+      { command: 'deletebroadcast', description: '🗑 Delete last broadcast (admin)' },
       { command: 'subscribers', description: '📊 Show subscriber count (admin)' }
     ]});
     await api('setChatMenuButton', { menu_button: {
