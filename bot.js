@@ -242,10 +242,7 @@ async function start() {
     console.log(`Bot running: @${me.result?.username}`);
     await api('setMyCommands', { commands: [
       { command: 'start', description: '🧪 Open MasterTerpz menu' },
-      { command: 'menu', description: '📋 Show all options' },
-      { command: 'broadcast', description: '📡 Broadcast to all subscribers (admin)' },
-      { command: 'deletebroadcast', description: '🗑 Delete last broadcast (admin)' },
-      { command: 'subscribers', description: '📊 Show subscriber count (admin)' }
+      { command: 'menu', description: '📋 Show all options' }
     ]});
     await api('setChatMenuButton', { menu_button: {
       type: 'web_app', text: '🚀 Open Catalog',
