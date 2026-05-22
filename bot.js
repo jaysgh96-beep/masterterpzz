@@ -2,19 +2,14 @@ const https = require('https');
 
 const TOKEN = '8677586883:AAE7Do8iAa2svktuLrYnl-J6IZZoDY6THn8';
 
-const WELCOME = `🧪 *Welcome to MasterTerpz*
+const WELCOME = `*Welcome to the MasterTerpz menu and art gallery* 🍽️📸
 
-Germany's premier members club 🇩🇪
-
-Choose an option below 👇`;
+❗ Click below to start ❗`;
 
 const KEYBOARD = {
   inline_keyboard: [
-    [{ text: '🏪 Showroom', web_app: { url: 'https://fluffy-sunshine-c44629.netlify.app/miniapp' } }],
-    [
-      { text: '💬 Telegram', url: 'https://t.me/masterthe1' },
-      { text: '🛡️ Threema', url: 'https://threema.id/VVNHP7UA' }
-    ]
+    [{ text: '🚀 Open Catalog', web_app: { url: 'https://fluffy-sunshine-c44629.netlify.app/miniapp' } }],
+    [{ text: '📨 Support', url: 'https://t.me/mastertheone' }]
   ]
 };
 
@@ -119,7 +114,7 @@ async function start() {
       { command: 'menu', description: '📋 Show all options' }
     ]});
     await api('setChatMenuButton', { menu_button: {
-      type: 'web_app', text: '🏪 Showroom',
+      type: 'web_app', text: '🚀 Open Catalog',
       web_app: { url: 'https://fluffy-sunshine-c44629.netlify.app/miniapp' }
     }});
     console.log('Ready — polling...');
