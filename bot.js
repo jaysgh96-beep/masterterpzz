@@ -197,6 +197,7 @@ async function sendWithPhoto(chatId, caption) {
 
 // ── POLLING ──
 let offset = 0;
+const processedIds = new Set();
 
 async function poll() {
   try {
@@ -204,6 +205,8 @@ async function poll() {
     if (res.ok && res.result?.length) {
       for (const update of res.result) {
         offset = update.update_id + 1;
+        if (processedIds.has(update.update_id)) continue;
+        processedIds.add(update.update_id);
         const msg = update.message;
         if (!msg?.text) continue;
         const chatId = msg.chat.id;
