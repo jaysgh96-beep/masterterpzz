@@ -2,7 +2,7 @@ const https = require('https');
 
 const TOKEN = '8677586883:AAE7Do8iAa2svktuLrYnl-J6IZZoDY6THn8';
 
-const WELCOME = `*Welcome to the MasterTerpz menu and art gallery* 🍽️📸
+const WELCOME = `🧪 *Welcome to MasterTerpz*\n\nGermany's premier members club 🇩🇪\n\nChoose an option below
 
 ❗ Click below to start ❗`;
 
