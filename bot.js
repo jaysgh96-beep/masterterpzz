@@ -5,9 +5,7 @@ const BIN_ID = '6a0dad69ee5a733b12edd0da';
 const BIN_KEY = '$2a$10$yn.52RlF0Fvg1hQsTxNthe81Ql0tW8s.djfb9SeUjaZnYb4sATYiG';
 const ADMIN_ID = 6492492818;
 
-const WELCOME = `🧪 *Welcome to MasterTerpz*\n\nWelcome to the one and Only 🥋\n\nGermany's premier members club 🇩🇪\n\nChoose an option below
-
-❗ Click below to start ❗`;
+const WELCOME = `🧪 *Welcome to MasterTerpz*\n\nWelcome to the one and Only 🥋\n\n❗ Click below to start ❗`;
 
 const KEYBOARD = {
   inline_keyboard: [
