@@ -1,5 +1,10 @@
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
+
+// Railway requires a web process to bind a port
+const PORT = process.env.PORT || 3000;
+http.createServer((req, res) => { res.writeHead(200); res.end('OK'); }).listen(PORT);
 
 const TOKEN = '8677586883:AAE7Do8iAa2svktuLrYnl-J6IZZoDY6THn8';
 const ADMIN_ID = 7625292285;
