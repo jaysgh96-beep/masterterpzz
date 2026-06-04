@@ -442,10 +442,19 @@ async function poll() {
           if (!data.config.shopOpen) {
             await api('sendMessage', { chat_id: chatId, text: data.config.closedMessage });
           } else {
-            await sendWithPhoto(chatId, data.config.welcome);
+            try {
+              await sendWithPhoto(chatId, data.config.welcome);
+            } catch(e) {
+              console.error('Photo failed, sending text:', e.message);
+              await api('sendMessage', { chat_id: chatId, parse_mode: 'Markdown', text: data.config.welcome, reply_markup: getKeyboard() });
+            }
           }
         } else if (data.config.autoReply) {
-          await sendWithPhoto(chatId, `Hey ${name}! 👋 Use the menu below 👇`);
+          try {
+            await sendWithPhoto(chatId, `Hey ${name}! 👋 Use the menu below 👇`);
+          } catch(e) {
+            await api('sendMessage', { chat_id: chatId, text: `Hey ${name}! 👋 Use the menu below 👇`, reply_markup: getKeyboard() });
+          }
         }
       }
     }
