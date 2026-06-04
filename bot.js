@@ -67,6 +67,25 @@ const ADMIN_KEYBOARD = {
 };
 
 
+function api(method, params) {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify(params);
+    const req = https.request({
+      hostname: 'api.telegram.org',
+      path: `/bot${TOKEN}/${method}`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }
+    }, res => {
+      let d = '';
+      res.on('data', c => d += c);
+      res.on('end', () => { try { resolve(JSON.parse(d)); } catch(e) { resolve({}); } });
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
 async function sendWithPhoto(chatId, caption) {
   return api('sendMessage', { chat_id: chatId, parse_mode: 'Markdown', text: caption, reply_markup: getKeyboard() });
 }
