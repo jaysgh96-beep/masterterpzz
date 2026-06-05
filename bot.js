@@ -2,7 +2,7 @@ const https = require('https');
 const http  = require('http');
 const fs    = require('fs');
 
-const TOKEN   = '8677586883:AAE7Do8iAa2svktuLrYnl-J6IZZoDY6THn8';
+const TOKEN   = '8782914372:AAGjoL-KjzwztBQcrNJ6doEx_FwND0OLZmY';
 const ADMIN_ID = 7625292285;
 const DATA_FILE = './botdata.json';
 const PORT    = process.env.PORT || 3000;
