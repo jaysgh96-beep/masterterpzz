@@ -6,6 +6,8 @@ const TOKEN   = '8782914372:AAGjoL-KjzwztBQcrNJ6doEx_FwND0OLZmY';
 const ADMIN_ID = 7625292285;
 const DATA_FILE = './botdata.json';
 const PORT    = process.env.PORT || 3000;
+const LOGO_URL = 'https://fluffy-sunshine-c44629.netlify.app/logo.jpg';
+let cachedFileId = null;
 
 // ── DATA ──
 function loadData() {
@@ -183,7 +185,12 @@ async function processUpdate(update){
       if(!data.config.shopOpen){
         await api('sendMessage',{chat_id:chatId,text:data.config.closedMessage});
       } else {
-        await api('sendMessage',{chat_id:chatId,parse_mode:'Markdown',text:data.config.welcome,reply_markup:getKeyboard()});
+        if(cachedFileId){
+          await api('sendPhoto',{chat_id:chatId,photo:cachedFileId,caption:data.config.welcome,parse_mode:'Markdown',reply_markup:getKeyboard()});
+        } else {
+          const r = await api('sendPhoto',{chat_id:chatId,photo:LOGO_URL,caption:data.config.welcome,parse_mode:'Markdown',reply_markup:getKeyboard()});
+          if(r.ok && r.result?.photo) cachedFileId = r.result.photo[r.result.photo.length-1].file_id;
+        }
       }
     } else if(data.config.autoReply){
       await api('sendMessage',{chat_id:chatId,text:`Hey ${name}! Use the menu below 👇`,reply_markup:getKeyboard()});
