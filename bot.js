@@ -200,6 +200,11 @@ const server = http.createServer((req,res)=>{
       res.writeHead(200); res.end('OK');
       try{ processUpdate(JSON.parse(body)); }catch(e){ console.error('Webhook parse error:',e.message); }
     });
+  } else if(req.method==='GET' && req.url==='/debug'){
+    api('sendMessage',{chat_id:ADMIN_ID,text:'Debug: Railway API call works!'}).then(r=>{
+      res.writeHead(200,'Content-Type: application/json');
+      res.end(JSON.stringify(r));
+    });
   } else {
     res.writeHead(200); res.end('MasterTerpz Bot OK');
   }
