@@ -206,7 +206,7 @@ const server = http.createServer((req,res)=>{
       res.end(JSON.stringify(r));
     });
   } else {
-    res.writeHead(200); res.end('MasterTerpz Bot OK');
+    res.writeHead(200); res.end(`MasterTerpz Bot OK - Node ${process.version}`);
   }
 });
 server.listen(PORT,()=>{
