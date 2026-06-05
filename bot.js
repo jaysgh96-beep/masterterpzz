@@ -29,18 +29,18 @@ function saveData(){ try{ fs.writeFileSync(DATA_FILE,JSON.stringify(data,null,2)
 let data = loadData();
 
 // ── API ──
-function api(method, params){
-  return new Promise((resolve,reject)=>{
-    const body = JSON.stringify(params);
-    const req = https.request({
-      hostname:'api.telegram.org',
-      path:`/bot${TOKEN}/${method}`,
-      method:'POST',
-      headers:{'Content-Type':'application/json','Content-Length':Buffer.byteLength(body)}
-    }, res=>{ let d=''; res.on('data',c=>d+=c); res.on('end',()=>{ try{resolve(JSON.parse(d));}catch(e){resolve({});} }); });
-    req.on('error', e=>{ console.error(`api ${method} error:`,e.message); resolve({}); });
-    req.write(body); req.end();
-  });
+async function api(method, params){
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${TOKEN}/${method}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params)
+    });
+    return await res.json();
+  } catch(e) {
+    console.error(`api ${method} error:`, e.message);
+    return {};
+  }
 }
 
 // ── KEYBOARDS ──
