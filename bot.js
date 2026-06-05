@@ -2,9 +2,65 @@ const https = require('https');
 const http = require('http');
 const fs = require('fs');
 
-// Railway requires a web process to bind a port
 const PORT = process.env.PORT || 3000;
-http.createServer((req, res) => { res.writeHead(200); res.end('v7-fixed'); }).listen(PORT);
+const WEBHOOK_HOST = process.env.RAILWAY_PUBLIC_DOMAIN || process.env.RAILWAY_STATIC_URL || null;
+
+async function processUpdate(update) {
+  if (update.callback_query) {
+    const cb = update.callback_query;
+    const cbId = cb.from.id;
+    await api('answerCallbackQuery', { callback_query_id: cb.id });
+    if (cbId === ADMIN_ID || data.admins.includes(cbId)) {
+      await handleAdminCallback(cbId, cb.data);
+    }
+    return;
+  }
+  const msg = update.message;
+  if (!msg?.text) return;
+  const chatId = msg.chat.id;
+  const userId = msg.from?.id;
+  const name = msg.from?.first_name || 'there';
+  data.stats.totalMessages++;
+  if (!data.users[userId]) {
+    data.users[userId] = { id: userId, name: msg.from?.first_name || 'Unknown', username: msg.from?.username || null, chatId, joinedAt: Date.now() };
+    saveData();
+  }
+  const isAdmin = userId === ADMIN_ID || data.admins.includes(userId);
+  if (isAdmin && states[chatId]) { await handleAdminState(chatId, msg.text); return; }
+  if (msg.text === '/admin' && isAdmin) {
+    await api('sendMessage', { chat_id: chatId, parse_mode: 'Markdown', text: '🔐 *Admin Panel* — MasterTerpz\n\nSelect an option:', reply_markup: ADMIN_KEYBOARD });
+    return;
+  }
+  console.log(`[${name}] ${msg.text}`);
+  if (msg.text.startsWith('/start') || msg.text.startsWith('/menu')) {
+    if (!data.config.shopOpen) {
+      await api('sendMessage', { chat_id: chatId, text: data.config.closedMessage });
+    } else {
+      await api('sendMessage', { chat_id: chatId, parse_mode: 'Markdown', text: data.config.welcome, reply_markup: getKeyboard() });
+    }
+  } else if (data.config.autoReply) {
+    await api('sendMessage', { chat_id: chatId, text: `Hey ${name}! Use the menu below`, reply_markup: getKeyboard() });
+  }
+}
+
+const server = http.createServer(async (req, res) => {
+  if (req.method === 'POST' && req.url === '/webhook') {
+    let body = '';
+    req.on('data', d => body += d);
+    req.on('end', async () => {
+      res.writeHead(200);
+      res.end('OK');
+      try {
+        const update = JSON.parse(body);
+        await processUpdate(update);
+      } catch(e) { console.error('Webhook error:', e.message); }
+    });
+  } else {
+    res.writeHead(200);
+    res.end('MasterTerpz Bot OK');
+  }
+});
+server.listen(PORT, () => console.log(`Server on port ${PORT}`));
 
 const TOKEN = '8677586883:AAE7Do8iAa2svktuLrYnl-J6IZZoDY6THn8';
 const ADMIN_ID = 7625292285;
@@ -355,91 +411,41 @@ async function handleAdminState(chatId, text) {
   return true;
 }
 
-// ── POLL ──
-async function poll() {
-  try {
-    const res = await api('getUpdates', { offset, timeout: 30, limit: 100, allowed_updates: ['message', 'callback_query'] });
-    if (res.ok && res.result?.length) {
-      for (const update of res.result) {
-        offset = update.update_id + 1;
-
-        if (update.callback_query) {
-          const cb = update.callback_query;
-          const cbId = cb.from.id;
-          await api('answerCallbackQuery', { callback_query_id: cb.id });
-          if (cbId === ADMIN_ID || data.admins.includes(cbId)) {
-            await handleAdminCallback(cbId, cb.data);
-          }
-          continue;
-        }
-
-        const msg = update.message;
-        if (!msg?.text) continue;
-        const chatId = msg.chat.id;
-        const userId = msg.from?.id;
-        const name = msg.from?.first_name || 'there';
-
-        data.stats.totalMessages++;
-        if (!data.users[userId]) {
-          data.users[userId] = { id: userId, name: msg.from?.first_name || 'Unknown', username: msg.from?.username || null, chatId, joinedAt: Date.now() };
-          saveData();
-        }
-
-        const isAdmin = userId === ADMIN_ID || data.admins.includes(userId);
-
-        if (isAdmin && states[chatId]) { await handleAdminState(chatId, msg.text); continue; }
-
-        if (msg.text === '/admin' && isAdmin) {
-          await api('sendMessage', { chat_id: chatId, parse_mode: 'Markdown', text: '🔐 *Admin Panel* — MasterTerpz\n\nSelect an option:', reply_markup: ADMIN_KEYBOARD });
-          continue;
-        }
-
-        console.log(`[${name}] ${msg.text}`);
-
-        if (msg.text.startsWith('/start') || msg.text.startsWith('/menu')) {
-          if (!data.config.shopOpen) {
-            await api('sendMessage', { chat_id: chatId, text: data.config.closedMessage });
-          } else {
-            try {
-              await sendWithPhoto(chatId, data.config.welcome);
-            } catch(e) {
-              console.error('Photo failed, sending text:', e.message);
-              await api('sendMessage', { chat_id: chatId, parse_mode: 'Markdown', text: data.config.welcome, reply_markup: getKeyboard() });
-            }
-          }
-        } else if (data.config.autoReply) {
-          try {
-            await sendWithPhoto(chatId, `Hey ${name}! 👋 Use the menu below 👇`);
-          } catch(e) {
-            await api('sendMessage', { chat_id: chatId, text: `Hey ${name}! 👋 Use the menu below 👇`, reply_markup: getKeyboard() });
-          }
-        }
-      }
-    }
-  } catch(e) { console.error('Poll error:', e.message); }
-  setTimeout(poll, 1500);
-}
-
 async function start() {
   try {
-    await api('deleteWebhook', { drop_pending_updates: true });
     const me = await api('getMe', {});
-    console.log(`Bot running: @${me.result?.username}`);
+    console.log(`Bot: @${me.result?.username}`);
     await api('setMyCommands', { commands: [
-      { command: 'start', description: '🧪 Open MasterTerpz menu' },
-      { command: 'menu', description: '📋 Show all options' },
-      { command: 'admin', description: '🔐 Admin panel' }
+      { command: 'start', description: 'Open MasterTerpz menu' },
+      { command: 'menu', description: 'Show all options' },
+      { command: 'admin', description: 'Admin panel' }
     ]});
-    await api('setChatMenuButton', { menu_button: {
-      type: 'web_app', text: '🚀 Open Catalog',
-      web_app: { url: data.config.links.shop }
-    }});
-    console.log('Ready — polling...');
-    poll();
+    if (WEBHOOK_HOST) {
+      const webhookUrl = `https://${WEBHOOK_HOST}/webhook`;
+      const r = await api('setWebhook', { url: webhookUrl, allowed_updates: ['message', 'callback_query'], drop_pending_updates: true });
+      console.log(`Webhook set: ${webhookUrl}`, r.ok ? 'OK' : r.description);
+    } else {
+      console.log('No RAILWAY_PUBLIC_DOMAIN — using long poll');
+      await api('deleteWebhook', { drop_pending_updates: true });
+      poll();
+    }
   } catch(e) {
     console.error('Startup error:', e.message);
     setTimeout(start, 5000);
   }
+}
+
+async function poll() {
+  try {
+    const res = await api('getUpdates', { offset, timeout: 10, limit: 100, allowed_updates: ['message', 'callback_query'] });
+    if (res.ok && res.result?.length) {
+      for (const update of res.result) {
+        offset = update.update_id + 1;
+        await processUpdate(update);
+      }
+    }
+  } catch(e) { console.error('Poll error:', e.message); }
+  setTimeout(poll, 1000);
 }
 
 start();
