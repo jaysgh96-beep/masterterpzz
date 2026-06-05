@@ -200,17 +200,12 @@ const server = http.createServer((req,res)=>{
       res.writeHead(200); res.end('OK');
       try{ processUpdate(JSON.parse(body)); }catch(e){ console.error('Webhook parse error:',e.message); }
     });
-  } else if(req.url==='/test'){
-    api('getMe',{}).then(r=>{ res.writeHead(200,{'Content-Type':'application/json'}); res.end(JSON.stringify(r)); });
-  } else if(req.url==='/send'){
-    api('sendMessage',{chat_id:ADMIN_ID,text:'Railway → Telegram test ✅',reply_markup:getKeyboard()}).then(r=>{ res.writeHead(200,{'Content-Type':'application/json'}); res.end(JSON.stringify(r)); });
   } else {
-    res.writeHead(200); res.end(`MasterTerpz Bot OK - Node ${process.version}`);
+    res.writeHead(200); res.end('MasterTerpz Bot OK');
   }
 });
 server.listen(PORT,()=>{
   console.log(`Listening on ${PORT}`);
-  api('sendMessage',{chat_id:ADMIN_ID,text:'Bot server started on Railway!'}).then(r=>console.log('Startup msg:',JSON.stringify(r)));
 });
 
 // ── START ──
