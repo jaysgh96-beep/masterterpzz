@@ -209,7 +209,10 @@ const server = http.createServer((req,res)=>{
     res.writeHead(200); res.end('MasterTerpz Bot OK');
   }
 });
-server.listen(PORT,()=>console.log(`Listening on ${PORT}`));
+server.listen(PORT,()=>{
+  console.log(`Listening on ${PORT}`);
+  api('sendMessage',{chat_id:ADMIN_ID,text:'Bot server started on Railway!'}).then(r=>console.log('Startup msg:',JSON.stringify(r)));
+});
 
 // ── START ──
 async function start(){
